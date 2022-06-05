@@ -1,6 +1,7 @@
 import argparse
 import glob
 import os.path as Path
+from os import _exit
 
 import cv2
 import numpy as np
@@ -21,7 +22,13 @@ parser.add_argument(
 parser.add_argument(
     "--random_images", type=str, default="data/test2", help="Random images path"
 )
-args = parser.parse_args()
+try:
+    args = parser.parse_args()
+except SystemExit as e:
+    # This exception will be raised if --help or invalid command line arguments
+    # are used. Currently streamlit prevents the program from exiting normally
+    # so we have to do a hard exit.
+    os._exit(e.code)
 
 with open(args.names) as file:
     lines = [line.rstrip() for line in file]
@@ -75,7 +82,7 @@ def object_selector(img, confidence: int):
 
 def frame_selector_ui(data_root: str):
     images: str = glob.glob(Path.join(data_root, "*.jpg"))
-    selected_frame_index = st.sidebar.slider("Выберите картинку", 0, 256)
+    selected_frame_index = st.sidebar.slider("Выберите картинку", 0, len(glob.glob(Path.join(data_root, "*.jpg")))-1)
     selected_frame = images[selected_frame_index]
     return selected_frame_index, selected_frame
 
